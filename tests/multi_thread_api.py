@@ -4,7 +4,6 @@ import threading
 
 app = FastAPI()
 
-# indi_app = multi_thread_indi.indi()
 
 @app.get("/")
 async def root():
@@ -21,7 +20,10 @@ async def news_list():
 def run_server():
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
+    print('run server')
 
 if __name__ == "__main__":
     server_thread = threading.Thread(target=run_server)
     server_thread.start()
+    print("start server")
+    indi_app = multi_thread_indi.indi()
