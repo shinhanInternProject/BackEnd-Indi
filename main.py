@@ -11,7 +11,8 @@ async def root():
 
 @app.get("/indi/stock/news")
 async def news_list():
-    result_data = indi_app.search_stock_news()
-    print(result_data)
+    print("call news list")
+    indi_app.search_stock_news()
+    print("called news list")
     
     return {"message": "success"}

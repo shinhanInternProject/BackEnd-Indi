@@ -1,8 +1,8 @@
 import sys
-# from PyQt5.QtGui import *
-# from PyQt5.QtCore import *
-# from PyQt5.QAxContainer import *
-# from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QAxContainer import *
+from PyQt5.QtWidgets import *
 import pandas as pd
 import GiExpertControl as giLogin  # 통신모듈 - 로그인
 import GiExpertControl as giStockRTTRShow
@@ -19,9 +19,9 @@ INDI_PW = os.environ.get('INDI_PW')
 # INDI_GOPW = os.environ.get('INDI_GOPW')
 
 # 초기 로그인 및 함수 연결
-class indi():
+class indi(QMainWindow):
     def __init__(self):
-        # super().__init__()
+        super().__init__()
         # self.setWindowTitle("IndiExample")
         TRShow.SetQtMode(True) 
         print('finish qt mode set')
@@ -115,6 +115,6 @@ class indi():
 # app.exec_()
 
 if __name__ == "__main__":
-    # app = QApplication(sys.argv)
+    app = QApplication(sys.argv)
     indi = indi()
-    # app.exec_()
+    app.exec_()
