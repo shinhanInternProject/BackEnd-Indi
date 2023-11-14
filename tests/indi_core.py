@@ -1,27 +1,24 @@
 import sys
-# from PyQt5.QtGui import *
-# from PyQt5.QtCore import *
-# from PyQt5.QAxContainer import *
-# from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QAxContainer import *
+from PyQt5.QtWidgets import *
 import pandas as pd
 import GiExpertControl as giLogin  # 통신모듈 - 로그인
 import GiExpertControl as giStockRTTRShow
 import GiExpertControl as TRShow
 from dotenv import load_dotenv
 import os
-import time
 
 # load .env
 load_dotenv()
 
 INDI_ID = os.environ.get('INDI_ID')
 INDI_PW = os.environ.get('INDI_PW')
-# INDI_GOPW = os.environ.get('INDI_GOPW')
 
-# 초기 로그인 및 함수 연결
-class indi():
+class indiApp(QMainWindow):
     def __init__(self):
-        # super().__init__()
+        super().__init__()
         # self.setWindowTitle("IndiExample")
         TRShow.SetQtMode(True) 
         print('finish qt mode set')
@@ -47,7 +44,7 @@ class indi():
                 print("INDI 로그인 정보", "INDI 호출 실패")
 
         self.search_stock_news()
-        time.sleep(5)
+        # time.sleep(5)
         TRShow.SetCallBack('ReceiveData', self.TRShow_ReceiveData)
 
     # 뉴스 목록 조회 
@@ -61,6 +58,26 @@ class indi():
         ret = TRShow.SetSingleData(0,stbd_code) # 종목코드
         ret = TRShow.SetSingleData(1,news_type) # 뉴스 구분
         ret = TRShow.SetSingleData(2,search_date) # 조회 일자
+
+        rqid = TRShow.RequestData() # 보내기(리퀘스트)
+
+        print(TRShow.GetErrorCode())
+        print(TRShow.GetErrorMessage())
+        
+        print(type(rqid))
+        print('Request Data rqid: ' + str(rqid))
+        self.rqidD[rqid] = TR_Name  
+
+    # 종목 정보 조회
+    def pushButton_search_stock_info(self):
+        stbd_code = '005930' # 종목코드
+        
+        # 1. 재무데이터 조회
+        TR_Name = "TR4_FUNDA3"
+        ret = TRShow.SetQueryName(TR_Name)          
+        ret = TRShow.SetSingleData(0,stbd_code) # 종목코드
+        ret = TRShow.SetSingleData(1,'0') # 개별/연결 구분
+        ret = TRShow.SetSingleData(2,'0') # 결산/분기 구분
 
         rqid = TRShow.RequestData() # 보내기(리퀘스트)
 
@@ -109,12 +126,20 @@ class indi():
             print(TRShow.GetErrorCode())
             print(TRShow.GetErrorMessage())
 
-# main - 실행
-# app = QApplication(sys.argv)
-# indi = indi()
-# app.exec_()
-
-if __name__ == "__main__":
-    # app = QApplication(sys.argv)
-    indi = indi()
-    # app.exec_()
+        if TR_Name == "TR4_FUNDA3":
+            nCnt = giCtrl.GetMultiRowCount()
+            print("c")
+            print(nCnt)
+            
+            for i in range(0, nCnt):
+                tr_data_output.append([])
+                tr_data_output[i].append(str(giCtrl.GetMultiData(i, 1))) # 기간구분
+                tr_data_output[i].append(str(giCtrl.GetMultiData(i, 10))) # EPS
+                tr_data_output[i].append(str(giCtrl.GetMultiData(i, 9))) # ROE
+                tr_data_output[i].append(str(giCtrl.GetMultiData(i, 13))) # PER
+                tr_data_output[i].append(str(giCtrl.GetMultiData(i, 12))) # BPS
+                tr_data_output[i].append(str(giCtrl.GetMultiData(i, 15))) # PBR
+                tr_data_output[i].append(str(giCtrl.GetMultiData(i, 6))) # 당기순이익
+            print(tr_data_output)
+            print(TRShow.GetErrorCode())
+            print(TRShow.GetErrorMessage())

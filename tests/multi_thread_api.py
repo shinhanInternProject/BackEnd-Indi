@@ -1,9 +1,38 @@
 from fastapi import FastAPI
-import multi_thread_indi
 import threading
+import sys
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QAxContainer import *
+from PyQt5.QtWidgets import *
+import pandas as pd
+import GiExpertControl as giLogin  # 통신모듈 - 로그인
+import GiExpertControl as giStockRTTRShow
+import GiExpertControl as TRShow
+from dotenv import load_dotenv
+import os
+import indi_core
+
+# load .env
+load_dotenv()
+
+INDI_ID = os.environ.get('INDI_ID')
+INDI_PW = os.environ.get('INDI_PW')
 
 app = FastAPI()
 
+indi_app_instance = None
+            
+def run_indi_app():
+    global indi_app_instance
+
+    app = QApplication(sys.argv)
+    indi_app_instance = indi_core.indiApp()
+    sys.exit(app.exec_())
+
+def run_fastapi_server():
+    import uvicorn
+    uvicorn.run(app, host='127.0.0.1', port=8000)
 
 @app.get("/")
 async def root():
@@ -12,18 +41,22 @@ async def root():
 @app.get("/indi/stock/news")
 async def news_list():
     print("call news list")
-    indi_app.search_stock_news()
+    indi_app_instance.search_stock_news()
     print("called news list")
     
-    return {"message": "success"}
+    return {"message": "success get stock news"}
 
-def run_server():
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
-    print('run server')
+@app.get("/indi/stock/info")
+async def info():
+    print("call info")
+    indi_app_instance.pushButton_search_stock_info()
+    print("called info")
+    
+    return {"message": "success get stock info"}
 
 if __name__ == "__main__":
-    server_thread = threading.Thread(target=run_server)
+    indi_thread = threading.Thread(target=run_indi_app)
+    indi_thread.start()
+
+    server_thread = threading.Thread(target=run_fastapi_server)
     server_thread.start()
-    print("start server")
-    indi_app = multi_thread_indi.indi()
