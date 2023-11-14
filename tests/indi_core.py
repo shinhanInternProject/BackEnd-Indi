@@ -9,12 +9,20 @@ import GiExpertControl as RTShow
 import GiExpertControl as TRShow
 from dotenv import load_dotenv
 import os
+import time
+import asyncio
 
 # load .env
 load_dotenv()
 
 INDI_ID = os.environ.get('INDI_ID')
 INDI_PW = os.environ.get('INDI_PW')
+
+async def wait_data(key, result):
+    while key not in result:
+        await asyncio.sleep(1)
+    return result[key]
+
 
 class indiApp(QMainWindow):
     def __init__(self):
@@ -29,7 +37,7 @@ class indiApp(QMainWindow):
         print('run python')
 
         self.rqidD = {}
-
+        self.tempResult = {}
         print(giLogin.GetCommState())
         if giLogin.GetCommState() == 0:  # 정상
             print('정상')
@@ -52,8 +60,9 @@ class indiApp(QMainWindow):
         RTShow.SetCallBack('ReceiveRTData', self.RTShow_ReceiveRTData)
 
 
+    
     # 뉴스 목록 조회 
-    def search_stock_news(self):
+    async def search_stock_news(self):
         stbd_code = '005930' # 종목코드
         search_date = '20231103' # 조회일자
         news_type = '1' # 뉴스타입
@@ -72,9 +81,16 @@ class indiApp(QMainWindow):
         print(type(rqid))
         print('Request Data rqid: ' + str(rqid))
         self.rqidD[rqid] = TR_Name  
+        
+        temp = await wait_data(rqid, self.tempResult)
+        self.tempResult = {}
+        
+        return temp
+    
+    
 
     # 종목 정보 조회
-    def pushButton_search_stock_info(self):
+    async def pushButton_search_stock_info(self):
         stbd_code = '005930' # 종목코드
         
         # 1. 재무데이터 조회
@@ -91,7 +107,12 @@ class indiApp(QMainWindow):
         
         print(type(rqid))
         print('Request Data rqid: ' + str(rqid))
-        self.rqidD[rqid] = TR_Name  
+        self.rqidD[rqid] = TR_Name
+
+        temp = await wait_data(rqid, self.tempResult)
+        self.tempResult = {}
+        
+        return temp  
 
     # TR data 처리
     def TRShow_ReceiveData(self,giCtrl,rqid):
@@ -117,20 +138,26 @@ class indiApp(QMainWindow):
                 tr_data_output[i].append((str(giCtrl.GetMultiData(i, 2)))) # 뉴스 제목
             print(TRShow.GetErrorCode())
             print(TRShow.GetErrorMessage())
+            self.tempResult[rqid] = tr_data_output
 
         # 뉴스 내용 조회
-        if TR_Name == "TR_3100":
+        if TR_Name == "TR_3100":    
             nCnt = giCtrl.GetMultiRowCount()
             print("c")
             print(nCnt)
             news_article = """"""
             for i in range(0, nCnt):
+                tr_data_output.append(str(giCtrl.GetMultiData(i,4)))
+                tr_data_output.append(str(giCtrl.GetMultiData(i,5)))
+                tr_data_output.append(str(giCtrl.GetMultiData(i,6)))
                 news_article += str(giCtrl.GetMultiData(i,4))
                 news_article += str(giCtrl.GetMultiData(i,5))
                 news_article += str(giCtrl.GetMultiData(i,6))
             print(TRShow.GetErrorCode())
             print(TRShow.GetErrorMessage())
+            self.tempResult[rqid] = tr_data_output
 
+        # 재무데이터 조회
         if TR_Name == "TR4_FUNDA3":
             nCnt = giCtrl.GetMultiRowCount()
             print("c")
@@ -145,9 +172,9 @@ class indiApp(QMainWindow):
                 tr_data_output[i].append(str(giCtrl.GetMultiData(i, 12))) # BPS
                 tr_data_output[i].append(str(giCtrl.GetMultiData(i, 15))) # PBR
                 tr_data_output[i].append(str(giCtrl.GetMultiData(i, 6))) # 당기순이익
-            print(tr_data_output)
             print(TRShow.GetErrorCode())
             print(TRShow.GetErrorMessage())
+            self.tempResult[rqid] = tr_data_output
 
     # 실시간 현재가 조회 버튼
     def request_rt(self):

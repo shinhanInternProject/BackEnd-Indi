@@ -5,17 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QAxContainer import *
 from PyQt5.QtWidgets import *
-import pandas as pd
-from dotenv import load_dotenv
-import os
 import indi_core
-import time
-
-# load .env
-load_dotenv()
-
-INDI_ID = os.environ.get('INDI_ID')
-INDI_PW = os.environ.get('INDI_PW')
 
 app = FastAPI()
 
@@ -36,21 +26,23 @@ def run_fastapi_server():
 async def root():
     return {"message": "Hello World"}
 
-@app.get("/indi/stock/news")
+@app.get("/news")
 async def news_list():
     print("call news list")
-    indi_app_instance.search_stock_news()
+    result = await indi_app_instance.search_stock_news()
+    print(result)
     print("called news list")
     
-    return {"message": "success get stock news"}
+    return {"message": result}
 
-@app.get("/indi/stock/info")
+@app.get("/info")
 async def info():
     print("call info")
-    indi_app_instance.pushButton_search_stock_info()
+    result = await indi_app_instance.pushButton_search_stock_info()
+    print(result)
     print("called info")
     
-    return {"message": "success get stock info"}
+    return {"message": result}
 
 @app.get("/realtime")
 async def rt():
