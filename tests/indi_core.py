@@ -87,6 +87,30 @@ class indiApp(QMainWindow):
         
         return temp
     
+    async def search_stock_news_2(self, stock_code, news_date, n_type):
+        stbd_code = stock_code # 종목코드
+        search_date = news_date # 조회일자
+        news_type = n_type # 뉴스타입
+
+        TR_Name = "TR_3100_D"
+        ret = TRShow.SetQueryName(TR_Name)
+        ret = TRShow.SetSingleData(0,stbd_code) # 종목코드
+        ret = TRShow.SetSingleData(1,news_type) # 뉴스 구분
+        ret = TRShow.SetSingleData(2,search_date) # 조회 일자
+
+        rqid = TRShow.RequestData() # 보내기(리퀘스트)
+
+        print(TRShow.GetErrorCode())
+        print(TRShow.GetErrorMessage())
+        
+        print(type(rqid))
+        print('Request Data rqid: ' + str(rqid))
+        self.rqidD[rqid] = TR_Name  
+        
+        temp = await wait_data(rqid, self.tempResult)
+        self.tempResult = {}
+        
+        return temp
     
 
     # 종목 정보 조회
