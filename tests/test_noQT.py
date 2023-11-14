@@ -5,7 +5,14 @@ import numpy as np
 import GiExpertControl as gi
 import GiExpertControl as giRQ
 import GiExpertControl as giRT
+from dotenv import load_dotenv
+import os
 
+# load .env
+load_dotenv()
+
+INDI_ID = os.environ.get('INDI_ID')
+INDI_PW = os.environ.get('INDI_PW')
 '''
     신한아이 인디 국내주식 예제입니다:
     코드를 입력하시고 Search 버튼을 누르시면
@@ -19,7 +26,7 @@ class IndiWindow():
         super().__init__()
 
         print('gi = {}, RQ = {}, RT = {}'.format(gi.GetSlotId(), giRQ.GetSlotId(), giRT.GetSlotId()))
-        gi.StartIndi('', '', '', 'C:\\SHINHAN-i\\indi\\GiExpertStarter.exe')
+        gi.StartIndi(INDI_ID, INDI_PW, '', 'C:\\SHINHAN-i\\indi\\GiExpertStarter.exe')
         print(gi.GetErrorCode())
         print(gi.GetErrorMessage())
 

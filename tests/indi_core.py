@@ -5,7 +5,7 @@ from PyQt5.QAxContainer import *
 from PyQt5.QtWidgets import *
 import pandas as pd
 import GiExpertControl as giLogin  # 통신모듈 - 로그인
-import GiExpertControl as giStockRTTRShow
+import GiExpertControl as RTShow
 import GiExpertControl as TRShow
 from dotenv import load_dotenv
 import os
@@ -22,9 +22,10 @@ class indiApp(QMainWindow):
         # self.setWindowTitle("IndiExample")
         TRShow.SetQtMode(True) 
         print('finish qt mode set')
-        # giStockRTTRShow.RunIndiPython()
         TRShow.RunIndiPython()
         giLogin.RunIndiPython()
+        RTShow.RunIndiPython()
+
         print('run python')
 
         self.rqidD = {}
@@ -46,6 +47,10 @@ class indiApp(QMainWindow):
         self.search_stock_news()
         # time.sleep(5)
         TRShow.SetCallBack('ReceiveData', self.TRShow_ReceiveData)
+
+        # 실시간 데이터 callback
+        RTShow.SetCallBack('ReceiveRTData', self.RTShow_ReceiveRTData)
+
 
     # 뉴스 목록 조회 
     def search_stock_news(self):
@@ -143,3 +148,28 @@ class indiApp(QMainWindow):
             print(tr_data_output)
             print(TRShow.GetErrorCode())
             print(TRShow.GetErrorMessage())
+
+    # 실시간 현재가 조회 버튼
+    def request_rt(self):
+        stbd_code = '005930'
+
+        rqid = RTShow.RequestRTReg("SC",stbd_code) # 실시간 현재가
+        print(type(rqid))
+        print('Request Data rqid: ' + str(rqid))
+             
+    # 실시간 현재가 조회 중지 버튼
+    def req_rt_stop(self):
+        stbd_code = '005930'
+        ret = RTShow.UnRequestRTReg("SC",stbd_code)
+        print(ret)
+
+    # 실시간 데이터 처리
+    def RTShow_ReceiveRTData(self,giCtrl,RealType):
+        if RealType == "SC":
+            print(str(giCtrl.GetSingleData(3))) # 현재가
+            print(RTShow.GetErrorCode())
+            print(RTShow.GetErrorMessage())
+            # print(str(giCtrl.GetSingleData(3))) # 현재가
+            # print(str(giCtrl.GetSingleData(10))) # 시가
+            # print(str(giCtrl.GetSingleData(11))) # 고가
+            # print(str(giCtrl.GetSingleData(12))) # 저가

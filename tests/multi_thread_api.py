@@ -6,12 +6,10 @@ from PyQt5.QtCore import *
 from PyQt5.QAxContainer import *
 from PyQt5.QtWidgets import *
 import pandas as pd
-import GiExpertControl as giLogin  # 통신모듈 - 로그인
-import GiExpertControl as giStockRTTRShow
-import GiExpertControl as TRShow
 from dotenv import load_dotenv
 import os
 import indi_core
+import time
 
 # load .env
 load_dotenv()
@@ -53,6 +51,18 @@ async def info():
     print("called info")
     
     return {"message": "success get stock info"}
+
+@app.get("/realtime")
+async def rt():
+    print("call rt")
+    indi_app_instance.request_rt()
+    return {"messge": "succcess get rt data"}
+
+@app.get("/realtime/stop")
+async def st_rt():
+    print("call rt stop")
+    indi_app_instance.req_rt_stop()
+    return {"message": "success stop rt data"}
 
 if __name__ == "__main__":
     indi_thread = threading.Thread(target=run_indi_app)
