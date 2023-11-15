@@ -46,14 +46,16 @@ async def stock_list(category_code: str):
     result = await indi_app_instance.category_stock_list(category_code)
     print("get - stock list done")
     
-    return {"status" : 200, "result" : result}
+    return {"status": result["status"], "result": result["result"]}
 
 # 종목 등락률, 시총 조회
 @router_stock.get("/{stock_code}")
 async def stock_info(stock_code: str):
     print("get - stock data")
     result = await indi_app_instance.stock_data(stock_code)
-    pass 
+    print("get - stock info done")
+    
+    return {"status" : result["status"], "result" : result["result"]}
 
 # 종목 ohlc 데이터 조회
 # body
@@ -62,7 +64,10 @@ async def stock_info(stock_code: str):
 async def stock_ohlc(stock_code: str, body: dict):
     print("post - stock ohlc")
     result = await indi_app_instance.stock_ohlc(stock_code, body["st_date"], body["end_date"])
-    pass
+    print("post - stock ohlc done")
+    
+    return {"status" : result["status"], "result" : result["result"]}
+
 
 
 # -----------------------------------------------------------

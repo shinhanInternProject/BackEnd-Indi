@@ -89,13 +89,45 @@ class indiApp(QMainWindow):
         # Response 전달용
         result = await wait_data(rqid, self.callback_result)
         self.callback_result = {}
-        print(result)
-        return result
+        
+        # error handling
+        if result == 0:
+            return {"status" : 500, "result": "error"}
+        else:
+          return {"status" : 200, "result": result}
     
     # 종목 등락률, 시가총액 조회
     # TR : TR_1110_11
     async def stock_data(self, req_stock_code):
-        pass
+        # TR 명
+        TR_Name = "TR_1110_11"
+
+        # Input Feild
+        ret = TRShow.SetQueryName(TR_Name)
+        ret = TRShow.SetSingleData(0, req_stock_code)  # 종목코드
+
+        # 보내기(리퀘스트)
+        rqid = TRShow.RequestData()
+
+        # Error
+        print(TRShow.GetErrorCode())
+        print(TRShow.GetErrorMessage())
+
+        print(type(rqid))
+        print('Request Data rqid: ' + str(rqid))
+
+        # ReceiveData 구분용
+        self.rqidD[rqid] = TR_Name
+
+        # Response 전달용
+        result = await wait_data(rqid, self.callback_result)
+        self.callback_result = {}
+
+        # error handling
+        if result == 0:
+            return {"status": 500, "result": "error"}
+        else:
+          return {"status": 200, "result": result}
     
     # 종목 ohlc 데이터 조회
     # TR : TR_SCHART
@@ -130,28 +162,48 @@ class indiApp(QMainWindow):
         print("TR_name : ", TR_Name)
         
         # Stock
-        # case 업종 종목 조회
+        # CASE 업종 종목 조회
         if TR_Name == "upjong_code_mst":
             nCnt = giCtrl.GetMultiRowCount()
             print("c")
             print(nCnt)
+            try:                
+              for i in range(0, nCnt):
+                  tr_data_output.append({})
+                  tr_data_output[i]["stbd_code"] = str(giCtrl.GetMultiData(i, 0))
+                  tr_data_output[i]["stbd_nm"] = str(giCtrl.GetMultiData(i, 1))
+                  # tr_data_output.append([])
+                  # tr_data_output[i].append(
+                  #     (str(giCtrl.GetMultiData(i, 0))))  # 종목 코드
+                  # tr_data_output[i].append(
+                  #     (str(giCtrl.GetMultiData(i, 1))))  # 종목 이름
+              print(TRShow.GetErrorCode())
+              print(TRShow.GetErrorMessage())
+              if len(tr_data_output) == 0:
+                  raise ValueError("에러 발생 로그 확인")
+              else:
+                # 반환 값 저장
+                self.callback_result[rqid] = tr_data_output
+            except ValueError as e:
+                self.callback_result[rqid] = 0
 
-            for i in range(0, nCnt):
-                tr_data_output.append({})
-                tr_data_output[i]["stbd_code"] = str(giCtrl.GetMultiData(i, 0))
-                tr_data_output[i]["stbd_nm"] = str(giCtrl.GetMultiData(i, 1))
-                # tr_data_output.append([])
-                # tr_data_output[i].append(
-                #     (str(giCtrl.GetMultiData(i, 0))))  # 종목 코드
-                # tr_data_output[i].append(
-                #     (str(giCtrl.GetMultiData(i, 1))))  # 종목 이름
-            print(TRShow.GetErrorCode())
-            print(TRShow.GetErrorMessage())
-            
-            # 반환 값 저장
-            self.callback_result[rqid] = tr_data_output
+        # CASE 종목 정보 조회
+        if TR_Name == "TR_1110_11":
+            nCnt = giCtrl.GetMultiRowCount()
+            print("c")
+            print(nCnt)
+            try:                
+              tr_data_output.append({})
+              tr_data_output[0]["day_range"] = str(giCtrl.GetSingleData(3)) # 등락률
+              tr_data_output[0]["market_cap"] = str(giCtrl.GetMultiData(15)) # 시가총액
 
-        
+              if len(tr_data_output) == 0:
+                  raise ValueError("에러 발생 로그 확인")  
+              else:
+                  self.callback_result[rqid] = tr_data_output
+            except ValueError as e:
+                  self.callback_result[rqid] = 0
+                  
         # News
         # 종목 뉴스 목록 조회
         if TR_Name == "TR_3100_D":
