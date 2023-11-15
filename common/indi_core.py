@@ -23,26 +23,32 @@ async def wait_data(key, result):
         await asyncio.sleep(1)
     return result[key]
 
+# -----------------------------------------------------------
 
 class indiApp(QMainWindow):
     def __init__(self):
         super().__init__()
+        # qt모드 세팅
         TRShow.SetQtMode(True)
-        print('finish qt mode set')
+        # IndiPython 실행
         TRShow.RunIndiPython()
         giLogin.RunIndiPython()
         RTShow.RunIndiPython()
 
         print('run python')
 
+        # RecieveData를 위한 dict
         self.rqidD = {}
+        # api response용 dict
         self.tempResult = {}
+
+        # 로그인
         print(giLogin.GetCommState())
         if giLogin.GetCommState() == 0:  # 정상
             print('정상')
         elif giLogin.GetCommState() == 1:  # 비정상
             print('비정상')
-            # 본인의 ID 및 PW 넣으셔야 합니다.
+            # 본인의 ID 및 PW
             login_return = giLogin.StartIndi(
                 INDI_ID, INDI_PW, '', 'C:\\SHINHAN-i\\indi\\GiExpertStarter.exe')
             if login_return == True:
@@ -51,14 +57,37 @@ class indiApp(QMainWindow):
             else:
                 print("INDI 로그인 정보", "INDI 호출 실패")
 
-        self.search_stock_news()
-        # time.sleep(5)
+        # TR 응답 처리
         TRShow.SetCallBack('ReceiveData', self.TRShow_ReceiveData)
 
-        # 실시간 데이터 callback
-        RTShow.SetCallBack('ReceiveRTData', self.RTShow_ReceiveRTData)
+# -----------------------------------------------------------
+# 주식 데이터
+    
+    # 업종 관련 종목 조회
+    async def category_stock_list(self, req_category_code):
+        pass
+    
+    # 종목 등락률, 시가총액 조회
+    async def stock_data(self, req_stock_code):
+        pass
+    
+    # 종목 ohlc 데이터 조회
+    async def stock_ohlc(self, req_stock_code, req_start_date, req_end_date):
+        pass
 
+# -----------------------------------------------------------
+# 뉴스 데이터
+    
     # 뉴스 목록 조회
+    # TR : TR_3100_D
+    async def search_stock_news_list(self, req_stock_code, req_search_date, req_news_type):
+        pass
+    
+    # 뉴스 내용 조회
+    # TR : TR_3100
+    async def search_stock_news_detail(self, req_stock_code, req_news_code, req_search_date, req_news_type_code):
+        pass
+    
     async def search_stock_news(self):
         stbd_code = '005930'  # 종목코드
         search_date = '20231103'  # 조회일자
@@ -84,59 +113,9 @@ class indiApp(QMainWindow):
 
         return temp
 
-    # post test용 함수
-    async def search_stock_news_2(self, req_stbd_code, req_search_date, req_news_type):
-        stbd_code = req_stbd_code  # 종목코드
-        search_date = req_search_date  # 조회일자
-        news_type = req_news_type  # 뉴스타입
 
-        TR_Name = "TR_3100_D"
-        ret = TRShow.SetQueryName(TR_Name)
-        ret = TRShow.SetSingleData(0, stbd_code)  # 종목코드
-        ret = TRShow.SetSingleData(1, news_type)  # 뉴스 구분
-        ret = TRShow.SetSingleData(2, search_date)  # 조회 일자
-
-        rqid = TRShow.RequestData()  # 보내기(리퀘스트)
-
-        print(TRShow.GetErrorCode())
-        print(TRShow.GetErrorMessage())
-
-        print(type(rqid))
-        print('Request Data rqid: ' + str(rqid))
-        self.rqidD[rqid] = TR_Name
-
-        temp = await wait_data(rqid, self.tempResult)
-        self.tempResult = {}
-
-        return temp
-
-    # 종목 정보 조회
-
-    async def pushButton_search_stock_info(self):
-        stbd_code = '005930'  # 종목코드
-
-        # 1. 재무데이터 조회
-        TR_Name = "TR4_FUNDA3"
-        ret = TRShow.SetQueryName(TR_Name)
-        ret = TRShow.SetSingleData(0, stbd_code)  # 종목코드
-        ret = TRShow.SetSingleData(1, '0')  # 개별/연결 구분
-        ret = TRShow.SetSingleData(2, '0')  # 결산/분기 구분
-
-        rqid = TRShow.RequestData()  # 보내기(리퀘스트)
-
-        print(TRShow.GetErrorCode())
-        print(TRShow.GetErrorMessage())
-
-        print(type(rqid))
-        print('Request Data rqid: ' + str(rqid))
-        self.rqidD[rqid] = TR_Name
-
-        temp = await wait_data(rqid, self.tempResult)
-        self.tempResult = {}
-
-        return temp
-
-    # TR data 처리
+# -----------------------------------------------------------
+    # TR data 처리 - 참고용
     def TRShow_ReceiveData(self, giCtrl, rqid):
         print("in receive_Data:", rqid)
         print('recv rqid: {}->{}\n'.format(rqid, self.rqidD[rqid]))
@@ -207,28 +186,3 @@ class indiApp(QMainWindow):
             print(TRShow.GetErrorCode())
             print(TRShow.GetErrorMessage())
             self.tempResult[rqid] = tr_data_output
-
-    # 실시간 현재가 조회 버튼
-    def request_rt(self):
-        stbd_code = '005930'
-
-        rqid = RTShow.RequestRTReg("SC", stbd_code)  # 실시간 현재가
-        print(type(rqid))
-        print('Request Data rqid: ' + str(rqid))
-
-    # 실시간 현재가 조회 중지 버튼
-    def req_rt_stop(self):
-        stbd_code = '005930'
-        ret = RTShow.UnRequestRTReg("SC", stbd_code)
-        print(ret)
-
-    # 실시간 데이터 처리
-    def RTShow_ReceiveRTData(self, giCtrl, RealType):
-        if RealType == "SC":
-            print(str(giCtrl.GetSingleData(3)))  # 현재가
-            print(RTShow.GetErrorCode())
-            print(RTShow.GetErrorMessage())
-            # print(str(giCtrl.GetSingleData(3))) # 현재가
-            # print(str(giCtrl.GetSingleData(10))) # 시가
-            # print(str(giCtrl.GetSingleData(11))) # 고가
-            # print(str(giCtrl.GetSingleData(12))) # 저가
