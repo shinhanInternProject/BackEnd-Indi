@@ -40,18 +40,20 @@ async def root():
 router_stock = APIRouter()
 
 # 업종 관련 종목 조회 
-@router_stock.get("/{category_code}")
+@router_stock.get("/category/{category_code}")
 async def stock_list(category_code: str):
     print("get - stock list")
+    print(category_code, type(category_code))
     result = await indi_app_instance.category_stock_list(category_code)
     print("get - stock list done")
     
     return {"status": result["status"], "result": result["result"]}
 
 # 종목 등락률, 시총 조회
-@router_stock.get("/{stock_code}")
+@router_stock.get("/info/{stock_code}")
 async def stock_info(stock_code: str):
     print("get - stock data")
+    print(stock_code, type(stock_code))
     result = await indi_app_instance.stock_data(stock_code)
     print("get - stock info done")
     
