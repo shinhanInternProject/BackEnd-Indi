@@ -82,18 +82,20 @@ router_news = APIRouter()
 @router_news.post("/{stock_code}")
 async def news_list(stock_code: str, body: dict):
     print("post - news list")
-    result = await indi_app_instance.search_stock_news_list(stock_code, body["search_date"], body["news_type"])
-    pass
+    result = await indi_app_instance.search_stock_news_list(stock_code, body["news_type"], body["search_date"])
+    print("post - news list done")
+
+    return {"status": result["status"], "result": result["result"]}
 
 # 뉴스 세부 내용 조회
+# news_code - 뉴스 리스트 조회를 통해 받은 뉴스 코드
 # body
-# news_code(str) - 뉴스 리스트 조회를 통해 받은 뉴스 코드
-# search_date(str) - 해당 뉴스 날짜
 # news_type_code(str) - 뉴스 리스트 조회를 통해 받은 뉴스 타입
-@router_news.post("/detail/{stock_code}")
-async def news_detail(stock_code: str, body: dict):
+# search_date(str) - 해당 뉴스 날짜
+@router_news.post("/detail/{news_code}")
+async def news_detail(news_code: str, body: dict):
     print("post - news detail")
-    result = await indi_app_instance.search_stock_news_detail(stock_code, body["news_code"], body["search_date"], body["news_type_code"])
+    result = await indi_app_instance.search_stock_news_detail(body["news_type_code"], body["search_date"], news_code)
     print("post - news detail done")
 
     return {"message" : result}

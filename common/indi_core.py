@@ -205,13 +205,83 @@ class indiApp(QMainWindow):
 
     # 뉴스 목록 조회
     # TR : TR_3100_D
-    async def search_stock_news_list(self, req_stock_code, req_search_date, req_news_type):
-        pass
+    async def search_stock_news_list(self, req_stock_code, req_news_type, req_search_date):
+        # TR 명
+        TR_Name = "TR_3100_D"
+
+        # Input Field
+        ret = TRShow.SetQueryName(TR_Name)
+        ret = TRShow.SetSingleData(0, req_stock_code)  # 종목코드
+        ret = TRShow.SetSingleData(1, req_news_type)  # 구분
+        ret = TRShow.SetSingleData(2, req_search_date)  # 조회일자
+
+        # 보내기(리퀘스트)
+        rqid = TRShow.RequestData()
+
+        # Error
+        err_code = print(TRShow.GetErrorCode())
+        err_msg = print(TRShow.GetErrorMessage())
+
+        print(type(rqid))
+        print('Request Data rqid: ' + str(rqid))
+
+        if str(rqid) == '0':
+            return {"status": 502, "result": "전달 오류"}
+
+        # ReceiveData 구분용
+        self.rqidD[rqid] = TR_Name
+
+        # Response 전달용
+        result = await wait_data(rqid, self.callback_result)
+        self.callback_result = {}
+
+        # error handling
+        if result == 0:
+            return {"status": 500, "result": "error"}
+        elif err_code == '0':
+            return {"status": 500, "result": err_msg}
+        else:
+            return {"status": 200, "result": result}
 
     # 뉴스 내용 조회
     # TR : TR_3100
-    async def search_stock_news_detail(self, req_stock_code, req_news_code, req_search_date, req_news_type_code):
-        pass
+    async def search_stock_news_detail(self, req_news_type_code, req_search_date, req_news_code):
+        # TR 명
+        TR_Name = "TR_3100"
+
+        # Input Field
+        ret = TRShow.SetQueryName(TR_Name)
+        ret = TRShow.SetSingleData(0, req_news_type_code)  # 뉴스 구분
+        ret = TRShow.SetSingleData(1, req_search_date)  # 뉴스 일자
+        ret = TRShow.SetSingleData(2, req_news_code)  # 뉴스 기사번호
+
+        # 보내기(리퀘스트)
+        rqid = TRShow.RequestData()
+
+        # Error
+        err_code = print(TRShow.GetErrorCode())
+        err_msg = print(TRShow.GetErrorMessage())
+
+        print(type(rqid))
+        print('Request Data rqid: ' + str(rqid))
+
+        if str(rqid) == '0':
+            return {"status": 502, "result": "전달 오류"}
+
+        # ReceiveData 구분용
+        self.rqidD[rqid] = TR_Name
+
+        # Response 전달용
+        result = await wait_data(rqid, self.callback_result)
+        self.callback_result = {}
+
+        # error handling
+        if result == 0:
+            return {"status": 500, "result": "error"}
+        elif err_code == '0':
+            return {"status": 500, "result": err_msg}
+        else:
+            return {"status": 200, "result": result}
 
 
 # -----------------------------------------------------------
@@ -318,26 +388,30 @@ class indiApp(QMainWindow):
                     self.callback_result[rqid] = tr_data_output
             except ValueError as e:
                 self.callback_result[rqid] = 0
+
         # News
         # 종목 뉴스 목록 조회
         if TR_Name == "TR_3100_D":
             nCnt = giCtrl.GetMultiRowCount()
             print("c")
             print(nCnt)
-
-            for i in range(0, nCnt):
-                tr_data_output.append([])
-                tr_data_output[i].append(
-                    (str(giCtrl.GetMultiData(i, 0))))  # 뉴스 일자
-                tr_data_output[i].append(
-                    (str(giCtrl.GetMultiData(i, 4))))  # 뉴스 기사번호
-                tr_data_output[i].append(
-                    (str(giCtrl.GetMultiData(i, 3))))  # 뉴스 구분
-                tr_data_output[i].append(
-                    (str(giCtrl.GetMultiData(i, 2))))  # 뉴스 제목
-            print(TRShow.GetErrorCode())
-            print(TRShow.GetErrorMessage())
-            self.callback_result[rqid] = tr_data_output
+            try:
+                for i in range(0, nCnt):
+                    tr_data_output.append({})
+                    tr_data_output[i]['date'] = str(giCtrl.GetMultiData(i, 0))  # 뉴스 일자
+                    tr_data_output[i]['news_code'] = str(giCtrl.GetMultiData(i, 4))  # 뉴스 기사번호
+                    tr_data_output[i]['news_type'] = str(giCtrl.GetMultiData(i, 3))  # 뉴스 구분
+                    tr_data_output[i]['news_title'] = str(giCtrl.GetMultiData(i, 2))  # 뉴스 제목
+                
+                print(TRShow.GetErrorCode())
+                print(TRShow.GetErrorMessage())
+                if len(tr_data_output) == 0:
+                    raise ValueError("에러 발생 로그 확인")
+                else:
+                    # 반환 값 저장
+                    self.callback_result[rqid] = tr_data_output
+            except ValueError as e:
+                self.callback_result[rqid] = 0
 
         # 뉴스 내용 조회
         if TR_Name == "TR_3100":
@@ -345,38 +419,22 @@ class indiApp(QMainWindow):
             print("c")
             print(nCnt)
             news_article = """"""
-            for i in range(0, nCnt):
-                tr_data_output.append(str(giCtrl.GetMultiData(i, 4)))
-                tr_data_output.append(str(giCtrl.GetMultiData(i, 5)))
-                tr_data_output.append(str(giCtrl.GetMultiData(i, 6)))
-                news_article += str(giCtrl.GetMultiData(i, 4))
-                news_article += str(giCtrl.GetMultiData(i, 5))
-                news_article += str(giCtrl.GetMultiData(i, 6))
-            print(TRShow.GetErrorCode())
-            print(TRShow.GetErrorMessage())
-            self.callback_result[rqid] = tr_data_output
+            try:
+                for i in range(0, nCnt):
+                    # tr_data_output.append(str(giCtrl.GetMultiData(i, 4)))
+                    # tr_data_output.append(str(giCtrl.GetMultiData(i, 5)))
+                    # tr_data_output.append(str(giCtrl.GetMultiData(i, 6)))
+                    news_article += str(giCtrl.GetMultiData(i, 4))
+                    news_article += str(giCtrl.GetMultiData(i, 5))
+                    news_article += str(giCtrl.GetMultiData(i, 6))
+                    tr_data_output.append(news_article)
 
-        # 재무데이터 조회
-        if TR_Name == "TR4_FUNDA3":
-            nCnt = giCtrl.GetMultiRowCount()
-            print("c")
-            print(nCnt)
-
-            for i in range(0, nCnt):
-                tr_data_output.append([])
-                tr_data_output[i].append(
-                    str(giCtrl.GetMultiData(i, 1)))  # 기간구분
-                tr_data_output[i].append(
-                    str(giCtrl.GetMultiData(i, 10)))  # EPS
-                tr_data_output[i].append(str(giCtrl.GetMultiData(i, 9)))  # ROE
-                tr_data_output[i].append(
-                    str(giCtrl.GetMultiData(i, 13)))  # PER
-                tr_data_output[i].append(
-                    str(giCtrl.GetMultiData(i, 12)))  # BPS
-                tr_data_output[i].append(
-                    str(giCtrl.GetMultiData(i, 15)))  # PBR
-                tr_data_output[i].append(
-                    str(giCtrl.GetMultiData(i, 6)))  # 당기순이익
-            print(TRShow.GetErrorCode())
-            print(TRShow.GetErrorMessage())
-            self.callback_result[rqid] = tr_data_output
+                print(TRShow.GetErrorCode())
+                print(TRShow.GetErrorMessage())
+                if len(tr_data_output) == 0:
+                    raise ValueError("에러 발생 로그 확인")
+                else:
+                    # 반환 값 저장
+                    self.callback_result[rqid] = tr_data_output
+            except ValueError as e:
+                self.callback_result[rqid] = 0
