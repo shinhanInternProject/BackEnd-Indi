@@ -285,9 +285,7 @@ class indiApp(QMainWindow):
 
 
 # -----------------------------------------------------------
-    # TR data 처리 - 참고용
-
-
+    # TR data 처리
     def TRShow_ReceiveData(self, giCtrl, rqid):
         # receive시 출력
         print("in receive_Data:", rqid)
@@ -377,6 +375,9 @@ class indiApp(QMainWindow):
                 for i in range(0, nCnt):
                     tr_data_output.append({})
                     tr_data_output[i]["date"] = str(giCtrl.GetMultiData(i, 0))
+                    tr_data_output[i]["open"] = str(giCtrl.GetMultiData(i, 2))
+                    tr_data_output[i]["high"] = str(giCtrl.GetMultiData(i, 3))
+                    tr_data_output[i]["low"] = str(giCtrl.GetMultiData(i, 4))
                     tr_data_output[i]["close"] = str(giCtrl.GetMultiData(i, 5))
 
                 print(TRShow.GetErrorCode())

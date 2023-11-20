@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 import sys
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -10,6 +11,18 @@ from common import indi_core
 
 # server app
 app = FastAPI()
+
+# 허용할 origin
+origin = ["*"]
+
+# middleware 등록
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # indi instance
 indi_app_instance = None
