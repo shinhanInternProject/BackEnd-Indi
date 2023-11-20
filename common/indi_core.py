@@ -21,9 +21,9 @@ INDI_PW = os.environ.get('INDI_PW')
 async def wait_data(key, result):
     count = 0
     while key not in result:
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.2)
         count += 1
-        if count > 5:
+        if count > 15:
             return 0
     return result[key]
 
@@ -380,6 +380,25 @@ class indiApp(QMainWindow):
                     raise ValueError("에러 발생 로그 확인")
                 else:
                     # 반환 값 저장
+                    self.callback_result[rqid] = tr_data_output
+            except ValueError as e:
+                self.callback_result[rqid] = 0
+        
+        # CASE 종목 정보 조회
+        if TR_Name == "TR_1110_11":
+            nCnt = giCtrl.GetMultiRowCount()
+            print("c")
+            print(nCnt)
+            try:
+                tr_data_output.append({})
+                tr_data_output[0]["day_range"] = str(
+                    giCtrl.GetSingleData(3))  # 등락률
+                tr_data_output[0]["market_cap"] = str(
+                    giCtrl.GetSingleData(15))  # 시가총액
+
+                if len(tr_data_output) == 0:
+                    raise ValueError("에러 발생 로그 확인")
+                else:
                     self.callback_result[rqid] = tr_data_output
             except ValueError as e:
                 self.callback_result[rqid] = 0
