@@ -119,6 +119,43 @@ class indiApp(QMainWindow):
         else:
             return {"status": 200, "result": result}
 
+    # 종목 현재가 조회
+    async def stock_cur_price(self, req_stock_code):
+        # TR 명
+        TR_Name = "SC"
+
+        # Input Field
+        ret = TRShow.SetQueryName(TR_Name)
+        ret = TRShow.SetSingleData(0, req_stock_code)  # 종목코드
+
+        # 보내기(리퀘스트)
+        rqid = TRShow.RequestData()
+
+        # Error
+        err_code = print(TRShow.GetErrorCode())
+        err_msg = print(TRShow.GetErrorMessage())
+
+        print(type(rqid))
+        print('Request Data rqid: ' + str(rqid))
+
+        if str(rqid) == '0':
+            return {"status": 502, "result": "전달 오류"}
+
+        # ReceiveData 구분용
+        self.rqidD[rqid] = TR_Name
+
+        # Response 전달용
+        result = await wait_data(rqid, self.callback_result)
+        self.callback_result = {}
+
+        # error handling
+        if result == 0:
+            return {"status": 500, "result": "error"}
+        elif err_code == '0':
+            return {"status": 500, "result": err_msg}
+        else:
+            return {"status": 200, "result": result}
+
     # 종목 등락률, 시가총액 조회
     # TR : TR_1110_11
     async def stock_data(self, req_stock_code):
@@ -347,17 +384,15 @@ class indiApp(QMainWindow):
             except ValueError as e:
                 self.callback_result[rqid] = 0
 
-        # CASE 종목 정보 조회
-        if TR_Name == "TR_1110_11":
+        # CASE 종목 현재가 조회
+        if TR_Name == "SC":
             nCnt = giCtrl.GetMultiRowCount()
             print("c")
             print(nCnt)
             try:
                 tr_data_output.append({})
-                tr_data_output[0]["day_range"] = str(
-                    giCtrl.GetSingleData(3))  # 등락률
-                tr_data_output[0]["market_cap"] = str(
-                    giCtrl.GetSingleData(15))  # 시가총액
+                tr_data_output[0]["cur_price"] = str(giCtrl.GetSingleData(3))  # 현재가
+
 
                 if len(tr_data_output) == 0:
                     raise ValueError("에러 발생 로그 확인")

@@ -66,10 +66,18 @@ async def stock_list(category_code: str):
 @router_stock.get("/info/{stock_code}")
 async def stock_info(stock_code: str):
     print("get - stock data")
-    print(stock_code, type(stock_code))
     result = await indi_app_instance.stock_data(stock_code)
     print("get - stock info done")
     
+    return {"status" : result["status"], "result" : result["result"]}
+
+# 종목 현재가 조회
+@router_stock.get("/curprice/{stock_code}")
+async def stock_curprice(stock_code: str):
+    print("get - stock cur price")
+    result = await indi_app_instance.stock_cur_price(stock_code)
+    print("get - stock cur price done")
+
     return {"status" : result["status"], "result" : result["result"]}
 
 # 종목 ohlc 데이터 조회
