@@ -36,14 +36,13 @@ async def news_list():
     return {"message": result}
 
 @app.post("/indi/stock/{stock_code}/news")
-async def news_list(stock_code: str, item: dict):
-    print(stock_code, type(stock_code), item)
-    print("post news list")
-    result = await indi_app_instance.search_stock_news_2(stock_code, item['search_date'], item['news_type'])
-    print(result)
-    print("called news list 2")
-
+async def news_list(stock_code: str, body: dict):
+    print("call news list")
+    result = await indi_app_instance.search_stock_news_2(stock_code, body["search_date"], body["news_type"])
+    print("called news list")
+    
     return {"message": result}
+
 
 @app.get("/info")
 async def info():

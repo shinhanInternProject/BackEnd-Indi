@@ -9,7 +9,6 @@ import GiExpertControl as RTShow
 import GiExpertControl as TRShow
 from dotenv import load_dotenv
 import os
-import time
 import asyncio
 
 # load .env
@@ -27,7 +26,6 @@ async def wait_data(key, result):
 class indiApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        # self.setWindowTitle("IndiExample")
         TRShow.SetQtMode(True) 
         print('finish qt mode set')
         TRShow.RunIndiPython()
@@ -86,11 +84,12 @@ class indiApp(QMainWindow):
         self.tempResult = {}
         
         return temp
-    
-    async def search_stock_news_2(self, stock_code, news_date, n_type):
-        stbd_code = stock_code # 종목코드
-        search_date = news_date # 조회일자
-        news_type = n_type # 뉴스타입
+        
+    # post test용 함수
+    async def search_stock_news_2(self, req_stbd_code, req_search_date, req_news_type):
+        stbd_code = req_stbd_code # 종목코드
+        search_date = req_search_date # 조회일자
+        news_type = req_news_type # 뉴스타입
 
         TR_Name = "TR_3100_D"
         ret = TRShow.SetQueryName(TR_Name)

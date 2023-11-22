@@ -1,18 +1,20 @@
-from fastapi import FastAPI
-from tests import indi_core
+import threading
+from api import server
 
-app = FastAPI()
+# indi 실행
+def run_app():
+    server.run_indi_app()
+    pass
 
-indi_app = indi_core.indi()
+# api server 실행
+def run_server():
+    server.run_fastapi_server()
+    pass
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+# main
+if __name__ == "__main__":
+    indi_thread = threading.Thread(target=run_app)
+    indi_thread.start()
 
-@app.get("/indi/stock/news")
-async def news_list():
-    print("call news list")
-    indi_app.search_stock_news()
-    print("called news list")
-    
-    return {"message": "success"}
+    server_thread = threading.Thread(target=run_server)
+    server_thread.start()
