@@ -94,7 +94,7 @@ async def handle_client(websocket, path):
                     stock_price = stock_data[stock_code]["price"]
                     await websocket.send(f"{stock_code} : {stock_price}")
                 else:
-                    await websocket.send("")
+                    await websocket.send("로딩중")
                 await asyncio.sleep(1)
     except websockets.exceptions.ConnectionClosedOK:
         print(f"Client {websocket.remote_address} disconnected.")
@@ -115,7 +115,7 @@ def run_websocket_server():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    start_server = websockets.serve(handle_client, "localhost", 8765)
+    start_server = websockets.serve(handle_client, "0.0.0.0", 8765)
     loop.run_until_complete(start_server)
     loop.run_forever()
 

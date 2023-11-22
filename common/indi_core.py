@@ -23,7 +23,7 @@ async def wait_data(key, result):
     while key not in result:
         await asyncio.sleep(0.2)
         count += 1
-        if count > 15:
+        if count > 30:
             return 0
     return result[key]
 
@@ -391,6 +391,7 @@ class indiApp(QMainWindow):
             print(nCnt)
             try:
                 tr_data_output.append({})
+                tr_data_output[0]["y_close"] = str(giCtrl.GetSingleData(0)) # 전일 종가
                 tr_data_output[0]["day_range"] = str(
                     giCtrl.GetSingleData(3))  # 등락률
                 tr_data_output[0]["market_cap"] = str(
@@ -409,8 +410,7 @@ class indiApp(QMainWindow):
             print("c")
             print(nCnt)
             try:
-                tr_data_output.append({})
-                tr_data_output[0]["cur_price"] = str(giCtrl.GetSingleData(3))  # 현재가
+                tr_data_output.append(str(giCtrl.GetSingleData(3)))  # 현재가
 
 
                 if len(tr_data_output) == 0:
